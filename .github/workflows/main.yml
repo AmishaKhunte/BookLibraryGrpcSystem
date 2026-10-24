@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - master
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -36,4 +38,12 @@ jobs:
 
       - name: Build and test ${{ matrix.service }}
         working-directory: ${{ matrix.service }}
-        run: mvn test
+        run: mvn package
+
+      - name: Upload JAR for version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service }}-${{ github.ref_name }}
+          path: ${{ matrix.service }}/target/*.jar
+          if-no-files-found: error
