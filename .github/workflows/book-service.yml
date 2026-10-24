@@ -1,0 +1,48 @@
+name: BookService CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+    paths:
+      - 'BookService/**'
+      - '.github/workflows/book-service.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'BookService/**'
+      - '.github/workflows/book-service.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build and test BookService
+        working-directory: BookService
+        run: mvn package
+
+      - name: Upload BookService JAR for version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: BookService-${{ github.ref_name }}
+          path: BookService/target/*.jar
+          if-no-files-found: error

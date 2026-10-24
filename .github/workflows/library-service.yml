@@ -1,0 +1,48 @@
+name: LibraryService CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+    paths:
+      - 'LibraryService/**'
+      - '.github/workflows/library-service.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'LibraryService/**'
+      - '.github/workflows/library-service.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build and test LibraryService
+        working-directory: LibraryService
+        run: mvn package
+
+      - name: Upload LibraryService JAR for version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: LibraryService-${{ github.ref_name }}
+          path: LibraryService/target/*.jar
+          if-no-files-found: error
